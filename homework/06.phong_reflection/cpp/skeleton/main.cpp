@@ -122,7 +122,6 @@ void key_callback();
 void scroll_callback(GLFWwindow* window, double x, double y);
 ////////////////////////////////////////////////////////////////////////////////
 
-
 ////////////////////////////////////////////////////////////////////////////////
 /// ImGuIZMO 관련 변수 및 함수
 ////////////////////////////////////////////////////////////////////////////////
@@ -487,17 +486,33 @@ void init_shader_program()
   loc_u_PVM = glGetUniformLocation(program, "u_PVM");
 
   loc_a_position = glGetAttribLocation(program, "a_position");
-  loc_a_color = glGetAttribLocation(program, "a_color");
+  loc_a_normal = glGetAttribLocation(program, "a_normal");
+  
+  loc_u_model_matrix = glGetUniformLocation(program, "u_model_matrix");
+  loc_u_normal_matrix = glGetUniformLocation(program, "u_normal_matrix");
+
+  loc_u_light_position = glGetUniformLocation(program, "u_light_position");
+  loc_u_light_ambient = glGetUniformLocation(program, "u_light_ambient");
+  loc_u_light_diffuse = glGetUniformLocation(program, "u_light_diffuse");
+  loc_u_light_specular = glGetUniformLocation(program, "u_light_specular");
+
+  loc_u_obj_ambient = glGetUniformLocation(program, "u_obj_ambient");
+  loc_u_obj_diffuse = glGetUniformLocation(program, "u_obj_diffuse");
+  loc_u_obj_specular = glGetUniformLocation(program, "u_obj_specular");
+  loc_u_obj_shininess = glGetUniformLocation(program, "u_obj_shininess");
+
+  loc_u_camera_position = glGetUniformLocation(program, "u_camera_position");
+  loc_u_view_matrix = glGetUniformLocation(program, "u_view_matrix");
 
   // TODO : get locations
 
 }
 
+
 void render_object()
 {
   // set transform
   mat_view = cameras[cam_select_idx].get_view_matrix();
-
   if (g_is_perspective) 
     mat_proj = glm::perspective(glm::radians(cameras[cam_select_idx].fovy()), g_aspect, 0.1f, 1000.0f);
   else 
@@ -506,12 +521,11 @@ void render_object()
 
   // 특정 쉐이더 프로그램 사용
   glUseProgram(program);
-
   // TODO : send data to GPU
   glUniformMatrix4fv(loc_u_view_matrix, 1, false, glm::value_ptr(mat_view)); 
   glUniform3fv(loc_u_camera_position, 1, glm::value_ptr(cameras[cam_select_idx].position()));
-  
   glUniform3fv(loc_u_light_position, 1, glm::value_ptr(light.pos));
+
   glUniform3fv(loc_u_light_ambient, 1, glm::value_ptr(light.ambient));
   glUniform3fv(loc_u_light_diffuse, 1, glm::value_ptr(light.diffuse));
   glUniform3fv(loc_u_light_specular, 1, glm::value_ptr(light.specular));
@@ -521,9 +535,16 @@ void render_object()
     // TODO : set mat_model, mat_normal, mat_PVM 
     // TODO : send data to GPU
 
+    mat_model = models[i].get_model_matrix();
+    mat_normal = transpose(inverse(mat_view * mat_model));
+    mat_PVM = mat_proj * mat_view * mat_model;
+
+    glUniformMatrix4fv(loc_u_PVM, 1, GL_FALSE, glm::value_ptr(mat_PVM));
+    glUniformMatrix4fv(loc_u_model_matrix, 1, GL_FALSE, glm::value_ptr(mat_model));
+    glUniformMatrix3fv(loc_u_normal_matrix, 1, GL_FALSE, glm::value_ptr(mat_normal));
+
     models[i].draw(loc_a_position, loc_a_normal, loc_u_obj_ambient, loc_u_obj_diffuse, loc_u_obj_specular, loc_u_obj_shininess);
   }
-
   // 쉐이더 프로그램 사용해제
   glUseProgram(0);
 }

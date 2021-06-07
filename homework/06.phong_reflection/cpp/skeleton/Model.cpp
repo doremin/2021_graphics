@@ -6,9 +6,10 @@ glm::mat4 Model::get_model_matrix()
 {
     glm::mat4 mat_model = glm::mat4(1.0f);
 
-    mat_model = mat_model * glm::translate(glm::mat4(1.0f), vec_translate);
-    mat_model = mat_model * mat_rotate;
-    mat_model = mat_model * glm::scale(glm::mat4(1.0f), vec_scale);
+    mat_model = glm::translate(glm::mat4(1.0f), vec_translate) * 
+                mat_rotate * 
+                glm::scale(glm::mat4(1.0f), vec_scale) *
+                mat_model;
 
     return mat_model;
 }
@@ -18,7 +19,10 @@ void Model::draw(int loc_a_position, int loc_a_normal, int loc_u_ambient, int lo
     for (int i = 0; i < mMeshes.size(); ++i)
     {
         // TODO : send material data to GPU
-
+        glUniform3fv(loc_u_ambient, 1, glm::value_ptr(mMeshes[i].mMaterial.ambient));
+        glUniform3fv(loc_u_diffuse, 1, glm::value_ptr(mMeshes[i].mMaterial.diffuse));
+        glUniform3fv(loc_u_specular, 1, glm::value_ptr(mMeshes[i].mMaterial.specular));   
+        glUniform1f(loc_u_shininess, mMeshes[i].mMaterial.shininess);
         mMeshes[i].draw(loc_a_position, loc_a_normal);
     }
 }
@@ -57,8 +61,6 @@ bool Model::load_model(const std::string& filename)
         mesh.set_material(mat);
 
         mMeshes.push_back(mesh);
-
-        
     }
     return true;
 }
