@@ -103,10 +103,14 @@ void compose_imgui_frame()
   // control window
   {
     ImGui::Begin("control");
-
     // TODO
-    ImGui::SliderFloat("translate", &vec_translate[0], -3.0f, 3.0f);
-
+    ImGui::SliderFloat3("translate", &vec_translate[0], -3.0f, 3.0f);
+    ImGui::NewLine();
+    ImGui::SliderFloat3("scale", &vec_scale[0], -3.0f, 3.0f);
+    
+    ImGui::gizmo3D("rotation", qRot);
+    // 쿼터니언 매트릭스를 glm::mat4로 변환하여 model matrix로 사용 
+    mat_rot = mat4_cast(qRot);
     ImGui::End();
   }
 
@@ -154,8 +158,15 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
   // scale
   if (key == GLFW_KEY_EQUAL && action == GLFW_PRESS)
     vec_scale += 0.1f;
+  if (key == GLFW_KEY_MINUS && action == GLFW_PRESS)
+    vec_scale -= 0.1f;
   
   // TODO
+  if (key == GLFW_KEY_K && action == GLFW_PRESS)
+    vec_translate[1] += 0.1f;
+  if (key == GLFW_KEY_J && action == GLFW_PRESS)
+    vec_translate[1] -= 0.1f;
+  
 }
 
 
@@ -278,8 +289,11 @@ void set_transform()
   mat_model = glm::mat4(1.0f);
 
   // TODO
-  mat_model = mat_model * glm::scale(glm::mat4(1.0f), vec_scale);
-  mat_model = mat_model * glm::translate(vec_translate);
+  glm::mat4 T = glm::translate(vec_translate);
+  glm::mat4 R = mat_rot;
+  glm::mat4 S = glm::scale(glm::mat4(1.0f), vec_scale);
+  
+  mat_model = T*R*S;
 }
 
 

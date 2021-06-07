@@ -81,6 +81,7 @@ bool load_asset(const std::string& filename);
 // void init_buffer_objects();     // VBO init 함수: GPU의 VBO를 초기화하는 함수.
 void render_object();           // rendering 함수: 물체(삼각형)를 렌더링하는 함수.
 void render(GLFWwindow* window);
+void save_scene_info();
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,6 +135,38 @@ GLFWwindow* createWindow(int width, int height, const char* title)
   return window;
 }
 
+void save_scene_info() {
+  std::ofstream fout("scene.txt");
+  fout << "selected camera: " << cam_select_idx
+  << "\nis perspective mode: " << g_is_perspective
+  << "\ncamera 0 position: " << cameras[0].position()[0] << " " << cameras[0].position()[1] << " " << cameras[0].position()[2]
+  << "\ncamera 0 front direction: " << cameras[0].front_direction()[0] << " " << cameras[0].front_direction()[1] << " " << cameras[0].front_direction()[2] << " "
+  << "\ncamera 0 up direction: " << cameras[0].up_direction()[0] << " " << cameras[0].up_direction()[1] << " " << cameras[0].up_direction()[2] << " "
+  << "\ncamera 0 center: " << cameras[0].center_position()[0] << " " << cameras[0].center_position()[1] << " " << cameras[0].center_position()[2] << " "
+  << "\ncamera 0 fovy: " << cameras[0].fovy()
+  << "\ncamera 1 position: " << cameras[1].position()[0] << " " << cameras[1].position()[1] << " " << cameras[1].position()[2]
+  << "\ncamera 1 front direction: " << cameras[1].front_direction()[0] << " " << cameras[1].front_direction()[1] << " " << cameras[1].front_direction()[2] << " "
+  << "\ncamera 1 up direction: " << cameras[1].up_direction()[0] << " " << cameras[1].up_direction()[1] << " " << cameras[1].up_direction()[2] << " "
+  << "\ncamera 1 center: " << cameras[1].center_position()[0] << " " << cameras[1].center_position()[1] << " " << cameras[1].center_position()[2] << " "
+  << "\ncamera 1 fovy: " << cameras[1].fovy()
+  << "\nObject 0: " << object_names[0]
+  << "\nObject 0 translate: " << objects[0].translate()[0] << " " << objects[0].translate()[1] << " " << objects[0].translate()[2] << " "
+  << "\nObject 0 scale: " << objects[0].scale()[0] << " " << objects[0].scale()[1] << " " << objects[0].scale()[2] << " "
+  << "\nObject 0 rotate:\t" << objects[0].rotate()[0][0] << " " << objects[0].rotate()[0][1] << " " << objects[0].rotate()[0][2] << " " << objects[0].rotate()[0][3]
+  << "\n\t\t\t\t\t" << objects[0].rotate()[1][0] << " " << objects[0].rotate()[1][1] << " " << objects[0].rotate()[1][2] << " " << objects[0].rotate()[1][3]
+  << "\n\t\t\t\t\t" << objects[0].rotate()[2][0] << " " << objects[0].rotate()[2][1] << " " << objects[0].rotate()[2][2] << " " << objects[0].rotate()[2][3]
+  << "\n\t\t\t\t\t" << objects[0].rotate()[3][0] << " " << objects[0].rotate()[3][1] << " " << objects[0].rotate()[3][2] << " " << objects[0].rotate()[3][3]
+  << "\nObject 1: " << object_names[1]
+  << "\nObject 1 translate: " << objects[1].translate()[0] << " " << objects[1].translate()[1] << " " << objects[1].translate()[2] << " "
+  << "\nObject 1 scale: " << objects[1].scale()[0] << " " << objects[1].scale()[1] << " " << objects[1].scale()[2] << " "
+  << "\nObject 1 rotate:\t" << objects[1].rotate()[0][0] << " " << objects[1].rotate()[0][1] << " " << objects[1].rotate()[0][2] << " " << objects[1].rotate()[0][3]
+  << "\n\t\t\t\t\t" << objects[1].rotate()[1][0] << " " << objects[1].rotate()[1][1] << " " << objects[1].rotate()[1][2] << " " << objects[1].rotate()[1][3]
+  << "\n\t\t\t\t\t" << objects[1].rotate()[2][0] << " " << objects[1].rotate()[2][1] << " " << objects[1].rotate()[2][2] << " " << objects[1].rotate()[2][3]
+  << "\n\t\t\t\t\t" << objects[1].rotate()[3][0] << " " << objects[1].rotate()[3][1] << " " << objects[1].rotate()[3][2] << " " << objects[1].rotate()[3][3];
+
+  std::cout << "save" << std::endl;
+}
+
 void scroll_callback(GLFWwindow* window, double x, double y)
 {
   float Fovy = cameras[cam_select_idx].fovy();
@@ -177,6 +210,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     cameras[cam_select_idx].move_forward(0.1f);
   if (key == GLFW_KEY_S && action == GLFW_PRESS)
     cameras[cam_select_idx].move_backward(0.1f);
+
+  if (key == GLFW_KEY_SPACE && action == GLFW_PRESS) {
+    save_scene_info();
+  }
 }
 
 void init_window(GLFWwindow* window) 
@@ -437,17 +474,40 @@ void init_shader_program()
 void render_object()
 {
   // TODO : set transform
-  mat_view = glm::mat4(1.0f); 
-  mat_proj = glm::mat4(1.0f);
+  mat_view = cameras[cam_select_idx].get_view_matrix(); 
 
+  if (g_is_perspective) {
+    mat_proj = perspective(
+      glm::radians(cameras[cam_select_idx].fovy()),
+      1.0f,
+      0.1f,
+      5.0f
+    );
+  } else {
+    mat_proj = ortho(
+      -1.0f,
+      1.0f,
+      -1.0f,
+      1.0f,
+      0.1f,
+      5.0f
+    );
+  }
+  
   // 특정 쉐이더 프로그램 사용
   glUseProgram(program);
-
   
+  GLuint vao;
+
   for (int i = 0; i < objects.size(); ++i)
   {
     // TODO : draw each object
+    mat_PVM = mat_proj * mat_view * objects[i].get_model_matrix();
+    glUniformMatrix4fv(loc_u_PVM, 1, GL_FALSE, glm::value_ptr(mat_PVM));
+    
+    objects[i].draw(loc_a_position, loc_a_color);
   }
+  
 
   // 쉐이더 프로그램 사용해제
   glUseProgram(0);

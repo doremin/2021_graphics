@@ -187,7 +187,13 @@ void compose_imgui_frame()
 
 void scroll_callback(GLFWwindow* window, double x, double y)
 {
-  // TODO
+  if (y > 0) {
+    g_camera.set_fovy(g_camera.fovy() - 1.0f);
+  }
+
+  if (y < 0) {
+    g_camera.set_fovy(g_camera.fovy() + 1.0f);
+  }
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -212,6 +218,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     vec_scale -= 0.1f;
 
   // TODO
+
+  // camera
+  if (key == GLFW_KEY_W && action == GLFW_PRESS) 
+    g_camera.move_forward(0.1f);
+  if (key == GLFW_KEY_S && action == GLFW_PRESS)
+    g_camera.move_backward(0.1f);
+  if (key == GLFW_KEY_D && action == GLFW_PRESS)
+    g_camera.move_right(0.1f);   
+  if (key == GLFW_KEY_A && action == GLFW_PRESS)
+    g_camera.move_left(0.1f);
 }
 
 // GLSL 파일을 읽어서 컴파일한 후 쉐이더 객체를 생성하는 함수
@@ -328,12 +344,30 @@ void init_buffer_objects()
 
 void set_transform() 
 {
-  mat_view = glm::mat4(1.0f);
-  mat_proj = glm::mat4(1.0f); 
   mat_model = glm::mat4(1.0f);
 
   // TODO
+  g_camera.set_mode(g_is_perspective ? Camera::kPerspective : Camera::kOrtho);
 
+  mat_view = g_camera.get_view_matrix();
+
+  if (g_camera.mode() == Camera::kPerspective) {
+    mat_proj = perspective(
+      glm::radians(g_camera.fovy()),
+      1.0f,
+      0.1f,
+      5.0f
+    );
+  } else if (g_camera.mode() == Camera::kOrtho) {
+    mat_proj = ortho(
+      -1.0f,
+      1.0f,
+      -1.0f,
+      1.0f,
+      0.1f,
+      5.0f
+    );
+  }
 
   mat_rot = glm::mat4_cast(qRot);
   mat_model = mat_model * glm::translate(vec_translate);
@@ -410,6 +444,7 @@ int main(void)
 
   glfwSetKeyCallback(window, key_callback);
   // TODO
+  glfwSetScrollCallback(window, scroll_callback);
 
   // Loop until the user closes the window
   while (!glfwWindowShouldClose(window))

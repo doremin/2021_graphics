@@ -1,0 +1,26 @@
+selected camera: 0
+is perspective mode: 1
+camera 0 position: 0 0 1
+camera 0 front direction: 0 0 -1 
+camera 0 up direction: 0 1 0 
+camera 0 center: 0 0 0 
+camera 0 fovy: 45
+camera 1 position: 0.9 0.3 0.3
+camera 1 front direction: -0.806421 -0.339238 -0.484358 
+camera 1 up direction: 0 1 0 
+camera 1 center: 0.093579 -0.039238 -0.184358 
+camera 1 fovy: 45
+Object 0: models/avocado.ply
+Object 0 translate: -0.2 0 0 
+Object 0 scale: 0.2 0.2 0.2 
+Object 0 rotate:	1 0 0 0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1
+Object 1: models/bunny.ply
+Object 1 translate: 0.2 -0.2 -0.4 
+Object 1 scale: 0.5 0.5 0.5 
+Object 1 rotate:	1 0 0 0
+					0 1 0 0
+					0 0 1 0
+					0 0 0 1
