@@ -21,9 +21,8 @@ public:
     Model() {};
     
     bool load_model(const std::string& filename) ;
-    void draw(int loc_a_position, int loc_u_diffuse_texture, int loc_a_texcoord);
+    void draw(int loc_a_position, int loc_u_diffuse_texture, int loc_a_texcoord, int loc_a_normal, int loc_u_obj_ambient, int loc_u_obj_diffuse, int loc_u_obj_specular, int loc_u_obj_shininess);
     bool init_texture_object(std::string filepath);
-
     void      set_translate(glm::vec3 vec)  { vec_translate = vec; }
     void      set_scale(glm::vec3 vec) { vec_scale = vec; }
     void      set_rotate(glm::mat4 mat) { mat_rotate = mat; }

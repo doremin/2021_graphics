@@ -10,6 +10,10 @@ void Mesh::init_buffer_objects()
     glBindBuffer(GL_ARRAY_BUFFER, texcoord_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(mMesh->mTextureCoords[0][0])*mMesh->mNumVertices, &mMesh->mTextureCoords[0][0].x, GL_STATIC_DRAW);
 
+    glGenBuffers(1, &normal_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
+    glBufferData(GL_ARRAY_BUFFER, mMesh-> mNumVertices * sizeof(aiVector3D), mMesh->mNormals, GL_STATIC_DRAW);
+    
     for (int j = 0; j < mMesh->mNumFaces; ++j) 
     {
       Face face_object;
@@ -25,7 +29,7 @@ void Mesh::init_buffer_objects()
     }
 }
 
-void Mesh::draw(int loc_a_position, int loc_a_texcoord)
+void Mesh::draw(int loc_a_position, int loc_a_texcoord, int loc_a_normal)
 {
     glBindBuffer(GL_ARRAY_BUFFER, position_buffer);
     glEnableVertexAttribArray(loc_a_position);
@@ -35,6 +39,11 @@ void Mesh::draw(int loc_a_position, int loc_a_texcoord)
     glEnableVertexAttribArray(loc_a_texcoord);
     glVertexAttribPointer(loc_a_texcoord, 2, GL_FLOAT, GL_FALSE, 12, (void*)0);
 
+    glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
+    glEnableVertexAttribArray(loc_a_normal);
+    glVertexAttribPointer(loc_a_normal, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+   
+
     for (int i = 0; i < faces.size(); ++i)
     {
         Face& face = faces[i];
@@ -43,6 +52,7 @@ void Mesh::draw(int loc_a_position, int loc_a_texcoord)
         glDrawElements(GL_TRIANGLES, face.num_indices, GL_UNSIGNED_INT, (void*)0);
     }
 
+    glDisableVertexAttribArray(loc_a_normal);
     glDisableVertexAttribArray(loc_a_position);
     glDisableVertexAttribArray(loc_a_texcoord);
 

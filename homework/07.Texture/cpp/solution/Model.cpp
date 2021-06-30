@@ -45,7 +45,7 @@ bool Model::init_texture_object(std::string filepath)
     return true;
 }
 
-void Model::draw(int loc_a_position,  int loc_u_diffuse_texture, int loc_a_texcoord)
+void Model::draw(int loc_a_position, int loc_u_diffuse_texture, int loc_a_texcoord, int loc_a_normal, int loc_u_obj_ambient, int loc_u_obj_diffuse, int loc_u_obj_specular, int loc_u_obj_shininess)
 {
     glUniform1i(loc_u_diffuse_texture, 0);
     glActiveTexture(GL_TEXTURE0);
@@ -53,7 +53,12 @@ void Model::draw(int loc_a_position,  int loc_u_diffuse_texture, int loc_a_texco
 
     for (int i = 0; i < mMeshes.size(); ++i)
     {
-        mMeshes[i].draw(loc_a_position, loc_a_texcoord);
+
+        glUniform3fv(loc_u_obj_ambient, 1, glm::value_ptr(mMeshes[i].mMaterial.ambient));
+        glUniform3fv(loc_u_obj_diffuse, 1, glm::value_ptr(mMeshes[i].mMaterial.diffuse));
+        glUniform3fv(loc_u_obj_specular, 1, glm::value_ptr(mMeshes[i].mMaterial.specular));   
+        glUniform1f(loc_u_obj_shininess, mMeshes[i].mMaterial.shininess);
+        mMeshes[i].draw(loc_a_position, loc_a_texcoord, loc_a_normal);
     }
 }
 
@@ -81,7 +86,6 @@ bool Model::load_model(const std::string& filename)
             size_t pos = filename.rfind("/");
             std::string basepath = filename.substr(0, pos+1);
             std::string fullpath = basepath + textureFilePath.data;
-
             if (!init_texture_object(fullpath))
                 return false;
             

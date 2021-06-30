@@ -13,6 +13,7 @@
 #include <GL/glew.h>
 #include <iostream>
 
+#include "Material.h"
 
 struct Face
 {    
@@ -28,13 +29,17 @@ public:
         : mMesh(mesh) {};
 
     void init_buffer_objects();
-    void draw(int loc_a_position, int loc_a_texcoord); 
+    void draw(int loc_a_position, int loc_a_texcoord, int loc_a_normal); 
     void print_info();
     
+    void set_material(Material mat) { mMaterial = mat;}
+    
+    Material mMaterial;
 private:
 
     GLuint  position_buffer; // GPU 메모리에서 vertices_buffer 위치 
     GLuint  texcoord_buffer;    // GPU 메모리에서 color_buffer 위치
+    GLuint  normal_buffer;
     bool    is_color = false;
 
     std::vector<Face> faces;
